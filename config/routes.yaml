@@ -1,0 +1,9 @@
+User_Index:
+    path: /api/users
+    controller: App\Controller\UserController::index
+    methods: [GET]
+
+Create_User:
+    path: /api/users
+    controller: App\Controller\UserController::create
+    methods: [POST]
