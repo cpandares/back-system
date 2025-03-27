@@ -12,3 +12,20 @@ Login:
     path: /api/login
     controller: App\Controller\UserController::login
     methods: [POST]
+
+
+##Clientes
+getCliente:
+    path: /api/clientes
+    controller: App\Controller\ClientController::index
+    methods: [GET]
+
+createCliente:
+    path: /api/clientes
+    controller: App\Controller\ClientController::create
+    methods: [POST]
+
+updateCliente:
+    path: /api/clientes/{id}
+    controller: App\Controller\ClientController::update
+    methods: [PUT]

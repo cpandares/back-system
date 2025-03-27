@@ -1,0 +1,28 @@
+security:
+    # Configuración de codificadores de contraseñas
+    password_hashers:
+        App\Entity\Users:
+            algorithm: auto
+
+    # Proveedores de usuarios
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\Users
+                property: email
+
+    # Firewalls
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        main:
+            pattern: ^/
+            stateless: true
+            jwt: ~ # Si estás usando autenticación JWT
+            provider: app_user_provider
+
+    # Control de acceso
+    access_control:
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
