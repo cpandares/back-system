@@ -7,3 +7,8 @@ Create_User:
     path: /api/users
     controller: App\Controller\UserController::create
     methods: [POST]
+
+Login:
+    path: /api/login
+    controller: App\Controller\UserController::login
+    methods: [POST]

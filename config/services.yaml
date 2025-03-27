@@ -13,6 +13,20 @@ services:
     App\Services\JwtAuthToken:
         arguments:
             $secretKey: '%env(JWT_SECRET)%'    
+    App\Dtos\users\RegisterUserDto:
+        arguments:
+            $name: 'Default Name'
+            $email: 'default@example.com'
+            $password: 'Default Password'
+            $last_name: 'Default Last Name'    
+    App\Dtos\users\LoginUserDto:
+        arguments:           
+            $email: 'default@example.com'
+            $password: 'Default Password'                        
+    App\Services\UserService:
+        arguments:
+            $passwordEncoder: '@security.password_encoder'
+    
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

@@ -2,14 +2,18 @@
 
 namespace App\Controller;
 
+use App\Dtos\users\RegisterUserDto;
+use App\Dtos\users\LoginUserDto;
 use App\Entity\Users;
 use App\Services\JwtAuthToken;
 use App\Repository\UsersRepository;
+use App\Services\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Doctrine\ORM\EntityManagerInterface;
+use Error;
 
 final class UserController extends AbstractController
 {
@@ -20,60 +24,40 @@ final class UserController extends AbstractController
         $this->entityManager = $entityManager;
     }
    
-    public function index(UsersRepository $usersRepository): JsonResponse
+    public function index(UserService $userSevice): JsonResponse
     {
-        $users = $usersRepository->findAll();
-        $data = [];
-
-        foreach ($users as $user) {
-            $data[] = [
-                
-                'id' => $user->getId(),
-                'name' => $user->getName(),
-                'last_name' => $user->getLastName(),
-                'document' => $user->getDocument(),
-                'email' => $user->getEmail(),
-                'password' => $user->getPassword()
-                
-                
-            ];
-        }
+        $data = $userSevice->getUsers($this->entityManager->getRepository(Users::class));
 
         return $this->json(['users' => $data]);
     }
 
 
-    public function create( Request $request, JwtAuthToken $jwtAuthToken ): JsonResponse
+    public function create( Request $request, JwtAuthToken $jwtAuthToken, UserService $userSevice ): JsonResponse
     {
        
         $data = json_decode($request->getContent(), true);
-       
-        $newUser = new Users();
-        $newUser->setName($data['name']);
-        $newUser->setLastName($data['last_name']);
-        /* email is valid */
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            return $this->json(['error' => 'Invalid email'], 400);
+        $registerUserDto = new RegisterUserDto(
+            $data['name'],
+            $data['last_name'],
+            $data['email'],
+            $data['document'],
+            $data['password']
+        );
+        $validationError = $registerUserDto->registerUserDto();
+        if ($validationError) {
+            return $this->json(['error' => $validationError->getMessage()], 400);
         }
-        /* is unique email */
-        $user = $this->entityManager->getRepository(Users::class)->findOneBy(['email' => $data['email']]);
-        if ($user) {
-            return $this->json(['error' => 'Email already exists'], 400);
-        }
-        $newUser->setEmail($data['email']);
-        /* encript password bcript */
 
-        $newUser->setPassword(password_hash($data['password'], PASSWORD_BCRYPT));
-         
-        $newUser->setDocument($data['document']);
+        $user = $userSevice->createUser($data);
+
+       
 
         try {
-            /* persist */
-            $this->entityManager->persist($newUser);
-            $this->entityManager->flush();
+            if( $user instanceof Error){
+                return $this->json(['error' => $user->getMessage()], 400);
 
+            }
             $jwt = $jwtAuthToken->encode($data['email']);
-           
             
             return $this->json([
                 'status' => 'User created!',
@@ -84,6 +68,31 @@ final class UserController extends AbstractController
         }
 
 
+    }
+
+    public function login(Request $request, UserService $userSevice,JwtAuthToken $jwtAuthToken): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $userDto = new LoginUserDto(
+            $data['email'],
+            $data['password']
+        );
+        $validationError = $userDto->loginUserDto();
+        if ($validationError) {
+            return $this->json(['error' => $validationError->getMessage()], 400);
+        }
+
+        $user = $userSevice->login($data);
+        if ($user instanceof Error) {
+            return $this->json(['error' => $user->getMessage()], 400);
+        }
+        $jwt = $jwtAuthToken->encode($data['email']);
+        return $this->json([
+            'status' => 'User logged in!',
+            'token' => $jwt,
+        ], 200);
+        
     }
 
 
