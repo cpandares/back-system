@@ -23,7 +23,7 @@ final class UserController extends AbstractController
     {
         $this->entityManager = $entityManager;
     }
-   
+
     public function index(UserService $userSevice): JsonResponse
     {
         $data = $userSevice->getUsers($this->entityManager->getRepository(Users::class));
@@ -32,10 +32,16 @@ final class UserController extends AbstractController
     }
 
 
-    public function create( Request $request, JwtAuthToken $jwtAuthToken, UserService $userSevice ): JsonResponse
+    public function create(Request $request, JwtAuthToken $jwtAuthToken, UserService $userSevice): JsonResponse
     {
-       
+
         $data = json_decode($request->getContent(), true);
+        $requiredFields = ['name', 'last_name', 'email', 'document', 'password'];
+        foreach ($requiredFields as $field) {
+            if (!isset($data[$field])) {
+                return $this->json(['error' => "Missing required field: $field"], 400);
+            }
+        }
         $registerUserDto = new RegisterUserDto(
             $data['name'],
             $data['last_name'],
@@ -50,15 +56,14 @@ final class UserController extends AbstractController
 
         $user = $userSevice->createUser($data);
 
-       
+
 
         try {
-            if( $user instanceof Error){
+            if ($user instanceof Error) {
                 return $this->json(['error' => $user->getMessage()], 400);
-
             }
             $jwt = $jwtAuthToken->encode($data['email']);
-            
+
             return $this->json([
                 'status' => 'User created!',
                 'token' => $jwt,
@@ -66,11 +71,9 @@ final class UserController extends AbstractController
         } catch (\Throwable $th) {
             return $this->json(['error' => $th->getMessage()], 400);
         }
-
-
     }
 
-    public function login(Request $request, UserService $userSevice,JwtAuthToken $jwtAuthToken): JsonResponse
+    public function login(Request $request, UserService $userSevice, JwtAuthToken $jwtAuthToken): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -87,14 +90,33 @@ final class UserController extends AbstractController
         if ($user instanceof Error) {
             return $this->json(['error' => $user->getMessage()], 400);
         }
+        $userLogin = $this->entityManager->getRepository(Users::class)->findOneBy(['email' => $data['email']]);
         $jwt = $jwtAuthToken->encode($data['email']);
         return $this->json([
-            'status' => 'User logged in!',
+            'ok' => true,
             'token' => $jwt,
+            'user' => [
+                'name' => $userLogin->getName(),
+                'last_name' => $userLogin->getLastName(),
+                'email' => $userLogin->getEmail(),
+
+            ]
         ], 200);
-        
     }
 
 
-
+    public function renewToken(Request $request, JwtAuthToken $jwtAuthToken): JsonResponse
+    {
+        $token = $request->headers->get('Authorization');
+        if (!$token) {
+            return $this->json(['error' => 'Token not found'], 401);
+        }
+        $token = str_replace('Bearer ', '', $token);
+        try {
+            $decoded = $jwtAuthToken->decode($token);
+            return $this->json(['status' => 'Token renewed', 'token' => $token, 'user' => $decoded], 200);
+        } catch (\Throwable $th) {
+            return $this->json(['error' => 'Token expired'], 401);
+        }
+    }
 }

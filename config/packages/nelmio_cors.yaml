@@ -1,0 +1,16 @@
+nelmio_cors:
+    defaults:
+        allow_origin: ['*'] # Permitir todas las solicitudes de cualquier origen
+        allow_methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] # Métodos HTTP permitidos
+        allow_headers: ['Content-Type', 'Authorization'] # Encabezados permitidos
+        expose_headers: ['Authorization'] # Encabezados expuestos al cliente
+        max_age: 3600 # Tiempo de caché para las solicitudes preflight
+        allow_credentials: true # Permitir el envío de cookies o credenciales
+    paths:
+        '^/api/': # Aplica estas reglas a las rutas que comienzan con /api/
+            allow_origin: ['*']
+            allow_methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+            allow_headers: ['Content-Type', 'Authorization']
+            expose_headers: ['Authorization']
+            max_age: 3600
+            allow_credentials: true
