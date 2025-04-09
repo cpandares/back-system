@@ -34,3 +34,14 @@ updateCliente:
     path: /api/clientes/{id}
     controller: App\Controller\ClientController::update
     methods: [PUT]
+
+## Services
+getTypeServices:
+    path: /api/type_services
+    controller: App\Controller\ServiceTypeController::index
+    methods: [GET]
+
+createTypeService:
+    path: /api/type_services
+    controller: App\Controller\ServiceTypeController::create
+    methods: [POST]
