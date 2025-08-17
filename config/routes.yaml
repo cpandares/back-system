@@ -35,6 +35,11 @@ updateCliente:
     controller: App\Controller\ClientController::update
     methods: [PUT]
 
+deleteCliente:
+    path: /api/clientes/{id}
+    controller: App\Controller\ClientController::delete
+    methods: [DELETE]
+
 ## Services
 getTypeServices:
     path: /api/type_services

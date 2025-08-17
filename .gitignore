@@ -14,4 +14,4 @@
 #Ignore .env file
 .env
 #Ignore .env.local file
-postgres-data/
+/postgres-data

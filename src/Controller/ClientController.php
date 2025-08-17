@@ -31,7 +31,9 @@ final class ClientController extends AbstractController
             return $this->json(['error' => 'Unauthorized'], 401);
         }
         $clients = $clientRepository->findAll();
-        return new JsonResponse($clients);
+
+
+       return $this->json($clients);
     }
 
 
@@ -93,9 +95,24 @@ final class ClientController extends AbstractController
             return $this->json(['error' => $client->getMessage()], 400);
         }
 
-        $jsonClient = $serializer->serialize($client, 'json');
+     /*    $jsonClient = $serializer->serialize($client, 'json'); */
 
-        return new JsonResponse($jsonClient, 200, [], true);
+        return $this->json($client)  ;
+    }
+
+    public function delete(Request $request, JwtAuthToken $jwtAuthToken, ClientService $clientService, $id): JsonResponse
+    {
+        $isAuth = $jwtAuthToken->validateToken($request);
+        if (!$isAuth) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $client = $clientService->deleteClient($id);
+        if ($client instanceof Error) {
+            return $this->json(['error' => $client->getMessage()], 400);
+        }
+
+        return $this->json(['message' => 'Client deleted successfully'], 200);
     }
 
 

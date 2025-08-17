@@ -44,21 +44,66 @@ class ClientService
 
     public function updateClient($data, $id)
     {
-       throw new Error('Method not implemented');
+        try {
+            $client = $this->entityManager->getRepository(Client::class)->find($id);
+            if (!$client) {
+                return new Error('Client not found');
+            }
+
+            $client->setName($data['name']);
+            $client->setLastName($data['last_name']);
+            $client->setEmail($data['email']);
+            $client->setCountry($data['country']);
+            $client->setCity($data['city']);
+            $client->setAddress($data['address']);
+            $client->setPhone($data['phone']);
+            $client->setState($data['state']);
+
+            $this->entityManager->flush();
+
+            return $client;
+        } catch (\Exception $e) {
+            return new Error($e->getMessage());
+        }
     }
 
     public function deleteClient($id)
     {
-        throw new Error('Method not implemented');
+        try {
+            $client = $this->entityManager->getRepository(Client::class)->find($id);
+            if (!$client) {
+                return new Error('Client not found');
+            }
+
+            $this->entityManager->remove($client);
+            $this->entityManager->flush();
+
+            return $client;
+        } catch (\Exception $e) {
+            return new Error($e->getMessage());
+        }
     }
 
     public function getClient($id)
     {
-        throw new Error('Method not implemented');
+        try {
+            $client = $this->entityManager->getRepository(Client::class)->find($id);
+            if (!$client) {
+                return new Error('Client not found');
+            }
+
+            return $client;
+        } catch (\Exception $e) {
+            return new Error($e->getMessage());
+        }
     }
 
     public function getClients()
     {
-        throw new Error('Method not implemented');
+        try {
+            return $this->entityManager->getRepository(Client::class)->findAll();
+        } catch (\Exception $e) {
+            return new Error($e->getMessage());
+        }
     }
 }
